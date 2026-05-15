@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Product Inventory</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="user-bar">
+    Welcome <strong th:text="${currentUser}">User</strong>!
+</div>
+<div class="container">
+    <header>
+        <h1>Product Inventory</h1>
+        <a class="btn btn-primary" th:href="@{/products/new}">+ New Product</a>
+    </header>
+
+    <div th:if="${flash}" class="flash" th:text="${flash}"></div>
+
+    <table class="products">
+        <thead>
+        <tr>
+            <th>SKU</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(products)}">
+            <td colspan="6" class="empty">No products yet.</td>
+        </tr>
+        <tr th:each="product : ${products}">
+            <td th:text="${product.sku}"></td>
+            <td th:text="${product.name}"></td>
+            <td th:text="${product.category}"></td>
+            <td th:text="${'$' + #numbers.formatDecimal(product.price, 1, 2)}"></td>
+            <td th:text="${product.quantity}"></td>
+            <td class="actions">
+                <a class="btn btn-sm" th:href="@{'/products/' + ${product.id} + '/edit'}">Edit</a>
+                <form th:action="@{'/products/' + ${product.id} + '/delete'}" method="post"
+                      onsubmit="return confirm('Delete this product?');" style="display:inline;">
+                    <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p class="count">
+        Total: <span th:text="${#lists.size(products)}"></span>
+    </p>
+</div>
+</body>
+</html>
