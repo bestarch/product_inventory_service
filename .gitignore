@@ -27,3 +27,5 @@ replay_pid*
 
 # Externally-mounted runtime config
 myuser.txt
+infra/.terraform.lock.hcl
+/infra/.terraform

@@ -58,26 +58,26 @@ variable "node_max_size" {
   default     = 3
 }
 
-variable "mongodb_instance_type" {
-  description = "EC2 instance type for the MongoDB VM."
+variable "db_instance_type" {
+  description = "EC2 instance type for the DB VM."
   type        = string
   default     = "t3.small"
 }
 
-variable "mongodb_user" {
-  description = "MongoDB application user."
+variable "db_user" {
+  description = "DB application user."
   type        = string
   default     = "admin"
 }
 
-variable "mongodb_password" {
-  description = "MongoDB application user password. Override at apply time."
+variable "db_password" {
+  description = "DB application user password. Override at apply time."
   type        = string
   sensitive   = true
 }
 
-variable "instance_role_for_mongodb" {
-  description = "IAM role to be attached to the mongoDB VM"
+variable "instance_role_for_db" {
+  description = "IAM role to be attached to the DB VM"
   type        = string
 }
 
@@ -92,7 +92,7 @@ variable "private_subnet2" {
 }
 
 variable "public_subnet" {
-  description = "Public subnet where mongodb to be deployed"
+  description = "Public subnet where db to be deployed"
   type        = string
 }
 

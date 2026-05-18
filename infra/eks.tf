@@ -22,12 +22,6 @@ data "aws_subnet" "private_subnet2" {
   id = var.private_subnet2
 }
 
-
-
-################################################################################
-# EKS cluster, IAM roles, node group (2 nodes in the private subnets)
-################################################################################
-
 # ---------------- IAM role for the EKS control plane ----------------
 data "aws_iam_policy_document" "eks_assume" {
   statement {
@@ -57,9 +51,6 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = var.kubernetes_version
 
   vpc_config {
-    # Worker nodes live in private subnets; we also pass the public subnets
-    # so the control plane ENIs can be placed in them if needed and so
-    # subnet auto-discovery for the LB controller works on both tiers.
     subnet_ids = [
       data.aws_subnet.private_subnet1.id,
       data.aws_subnet.private_subnet2.id
@@ -74,16 +65,6 @@ resource "aws_eks_cluster" "eks_cluster" {
   ]
 }
 
-# ---------------- OIDC provider for IRSA ----------------
-# data "tls_certificate" "eks_oidc" {
-#   url = aws_eks_cluster.this.identity[0].oidc[0].issuer
-# }
-
-# resource "aws_iam_openid_connect_provider" "eks" {
-#   url             = aws_eks_cluster.this.identity[0].oidc[0].issuer
-#   client_id_list  = ["sts.amazonaws.com"]
-#   thumbprint_list = [data.tls_certificate.eks_oidc.certificates[0].sha1_fingerprint]
-# }
 
 # ---------------- IAM role for the managed node group ----------------
 data "aws_iam_policy_document" "node_assume" {
@@ -116,6 +97,7 @@ resource "aws_iam_role_policy_attachment" "node_ecr" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+
 # ---------------- Managed node group (2 nodes, private subnets) ----------------
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
@@ -141,7 +123,7 @@ resource "aws_eks_node_group" "node_group" {
     aws_iam_role_policy_attachment.node_ecr,
   ]
 
-#   tags = {
-#     Name = "${local.name_prefix}-ng"
-#   }
+  tags = {
+    Name = "${var.prefix}-ng"
+  }
 }

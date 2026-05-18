@@ -1,0 +1,56 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: abhishek/product-inventory-service
+  EKS_CLUSTER: abhicluster
+  NAMESPACE: app-poc
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, Tag & Push image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}        # unique tag per commit
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name ${{ env.EKS_CLUSTER }}
+
+      - name: Deploy to EKS
+        env:
+          IMAGE: ${{ steps.build-image.outputs.image }}
+        run: |
+          kubectl set image deployment/product-inventory-service-deployment \
+            product-inventory-service=$IMAGE \
+            -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/product-inventory-service-deployment \
+            -n ${{ env.NAMESPACE }}
