@@ -11,15 +11,15 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.region
 }
 
-data "aws_subnet" "subnet1" {
-  id = "subnet-09ffaae2491b88ad5"
+data "aws_subnet" "private_subnet1" {
+  id = var.private_subnet1
 }
 
-data "aws_subnet" "subnet2" {
-  id = "subnet-0a2c29726c4aa9d95"
+data "aws_subnet" "private_subnet2" {
+  id = var.private_subnet2
 }
 
 
@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "eks_assume" {
 }
 
 resource "aws_iam_role" "eks_cluster_role" {
-  name               = "abhi-eks-cluster-role"
+  name               = "${var.prefix}-eks-cluster-role"
   assume_role_policy = data.aws_iam_policy_document.eks_assume.json
 }
 
@@ -52,17 +52,17 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
 
 # ---------------- EKS cluster ----------------
 resource "aws_eks_cluster" "eks_cluster" {
-  name     = "abhicluster"
+  name     = "${var.prefix}cluster"
   role_arn = aws_iam_role.eks_cluster_role.arn
-  version  = "1.34"
+  version  = var.kubernetes_version
 
   vpc_config {
     # Worker nodes live in private subnets; we also pass the public subnets
     # so the control plane ENIs can be placed in them if needed and so
     # subnet auto-discovery for the LB controller works on both tiers.
     subnet_ids = [
-      data.aws_subnet.subnet1.id,
-      data.aws_subnet.subnet2.id
+      data.aws_subnet.private_subnet1.id,
+      data.aws_subnet.private_subnet2.id
     ]
     endpoint_private_access = true
     endpoint_public_access  = true
@@ -97,7 +97,7 @@ data "aws_iam_policy_document" "node_assume" {
 }
 
 resource "aws_iam_role" "eks_node_role" {
-  name               = "abhi-eks-node-role"
+  name               = "${var.prefix}-eks-node-role"
   assume_role_policy = data.aws_iam_policy_document.node_assume.json
 }
 
@@ -119,16 +119,16 @@ resource "aws_iam_role_policy_attachment" "node_ecr" {
 # ---------------- Managed node group (2 nodes, private subnets) ----------------
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
-  node_group_name = "abhi-node-group"
+  node_group_name = "${var.prefix}-node-group"
   node_role_arn   = aws_iam_role.eks_node_role.arn
-  subnet_ids      = [data.aws_subnet.subnet1.id, data.aws_subnet.subnet2.id]
+  subnet_ids      = [data.aws_subnet.private_subnet1.id, data.aws_subnet.private_subnet2.id]
 
-  instance_types  = ["c6a.xlarge"]
+  instance_types  = [var.node_instance_type]
 
   scaling_config {
-    desired_size = 2
-    max_size     = 2
-    min_size     = 1
+    desired_size = var.node_desired_size
+    max_size     = var.node_max_size
+    min_size     = var.node_min_size
   }
 
   update_config {
