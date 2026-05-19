@@ -29,3 +29,7 @@ replay_pid*
 myuser.txt
 infra/.terraform.lock.hcl
 /infra/.terraform
+infra/.terraform.tfstate.lock.info
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+infra/terraform.tfstate
