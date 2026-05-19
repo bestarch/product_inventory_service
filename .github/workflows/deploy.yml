@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: "Checkout code"
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
@@ -26,21 +26,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
+      - name: "Login to ECR"
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, Tag & Push image to ECR
+      - name: "Build the image"
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}        # unique tag per commit
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-#          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Image scanning for vulnerabilities
+      - name: "Image scanning for vulnerabilities"
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.build-image.outputs.image }}
@@ -49,20 +48,20 @@ jobs:
           ignore-unfixed: true           # ignore vulns with no fix available yet
           severity: CRITICAL,HIGH        # only fail on CRITICAL and HIGH
 
-      - name: Push image to ECR
+      - name: "Push image to ECR"
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
             docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Update kubeconfig for EKS
+      - name: "Update kubeconfig for EKS"
         run: |
           aws eks update-kubeconfig \
             --region ${{ env.AWS_REGION }} \
             --name ${{ env.EKS_CLUSTER }}
 
-      - name: Deploy to EKS
+      - name: "Deploy to EKS"
         env:
           IMAGE: ${{ steps.build-image.outputs.image }}
         run: |
