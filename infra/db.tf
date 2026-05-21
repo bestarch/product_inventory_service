@@ -14,11 +14,16 @@ resource "aws_instance" "db_vm" {
   key_name                    = var.ec2_key_pair
   subnet_id                   = data.aws_subnet.public_subnet.id
   associate_public_ip_address = true
-  iam_instance_profile = aws_iam_instance_profile.db_instance_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.db_instance_profile.name
 
   user_data = file("db_install.sh")
   tags = {
     Name = "${var.prefix}-db"
-  }  
+  }
+}
+
+output "db_vm_public_ip" {
+  description = "Public IP address of the database VM"
+  value       = aws_instance.db_vm.public_ip
 }
 

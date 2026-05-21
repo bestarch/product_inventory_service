@@ -72,7 +72,7 @@ EOF
 
 chmod +x /home/ubuntu/backup.sh
 
-./backup.sh
+bash /home/ubuntu/backup.sh
 
 # Add cron job for daily backup
 echo "0 21 * * * /home/ubuntu/backup.sh >> /var/log/backup.log 2>&1" | crontab -

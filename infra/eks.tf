@@ -57,8 +57,16 @@ resource "aws_eks_cluster" "eks_cluster" {
     ]
     endpoint_private_access = true
     endpoint_public_access  = true
-    
+
   }
+
+  enabled_cluster_log_types = [
+    "api",
+    "audit",
+    "authenticator",
+    "controllerManager",
+    "scheduler"
+  ]
 
   depends_on = [
     aws_iam_role_policy_attachment.eks_cluster_policy
@@ -105,7 +113,7 @@ resource "aws_eks_node_group" "node_group" {
   node_role_arn   = aws_iam_role.eks_node_role.arn
   subnet_ids      = [data.aws_subnet.private_subnet1.id, data.aws_subnet.private_subnet2.id]
 
-  instance_types  = [var.node_instance_type]
+  instance_types = [var.node_instance_type]
 
   scaling_config {
     desired_size = var.node_desired_size
@@ -126,4 +134,9 @@ resource "aws_eks_node_group" "node_group" {
   tags = {
     Name = "${var.prefix}-ng"
   }
+}
+
+output "eks_cluster_name" {
+  description = "Name of the EKS cluster"
+  value       = aws_eks_cluster.eks_cluster.name
 }
