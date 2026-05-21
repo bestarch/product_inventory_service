@@ -15,7 +15,7 @@ private_subnet1 = "subnet-09ffaae2491b88ad5"
 private_subnet2 = "subnet-0a2c29726c4aa9d95"
 
 # MongoDB
-db_instance_type = "t2.medium"
+db_instance_type = "t3.medium" #t2.medium
 db_user          = "admin"
 db_password      = "admin"
 ec2_key_pair = "abhi-key-pair"
