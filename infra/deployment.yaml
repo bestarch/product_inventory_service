@@ -15,6 +15,7 @@ spec:
       labels:
         app: product-inventory-service
     spec:
+      serviceAccountName: app-sa
       containers:
         - name: product-inventory-service
           image: 746669211850.dkr.ecr.us-east-1.amazonaws.com/abhishek/product-inventory-service
