@@ -64,6 +64,11 @@ variable "db_instance_type" {
   default     = "t3.small"
 }
 
+variable "db_elastic_ip_address" {
+  description = "Existing Elastic IP public IPv4 address to attach to the DB VM."
+  type        = string
+}
+
 variable "db_user" {
   description = "DB application user."
   type        = string
