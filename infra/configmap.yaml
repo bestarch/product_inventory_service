@@ -5,6 +5,6 @@ metadata:
   namespace: app-poc
   name: my-config
 data:
-  MONGO_HOST: "18.215.184.111"
+  MONGO_HOST: "50.19.249.212"
   MONGO_USER: "admin"
   MONGO_PASSWORD: "admin"
